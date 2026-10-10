@@ -1,284 +1,213 @@
- "use client";
+"use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronDown, Leaf, Minus, Plus, ShoppingBag, X } from "lucide-react";
 
 type Product = {
   id: string;
   name: string;
-  flavor: string;
+  shortName: string;
   description: string;
-  price: number;
-  color: string;
-  accent: string;
-  number: string;
+  image: string;
+  tone: string;
   notes: string[];
+  price: number;
 };
+
+type CartLine = { id: string; qty: number };
 
 const products: Product[] = [
   {
     id: "dark",
-    name: "Dark Chocolate",
-    flavor: "The bold one",
-    description: "A rich, bittersweet chocolate dip for a beautifully balanced bite.",
+    name: "Dark Chocolate Dipped Bites",
+    shortName: "Dark Chocolate",
+    description: "Deep cocoa notes meet a naturally nourishing bite. Rich, balanced, and made for your little daily indulgence.",
+    image: "/dark-chocolate.webp",
+    tone: "dark",
+    notes: ["20 nutritious bites", "Rich dark chocolate dip", "A little treat, a lot of goodness"],
     price: 399,
-    color: "#24130e",
-    accent: "#b8783c",
-    number: "01",
-    notes: ["Deep cocoa notes", "Rich chocolate finish", "20 bites per pack"],
   },
   {
     id: "white",
-    name: "White Chocolate",
-    flavor: "The mellow one",
-    description: "A creamy, delicate white chocolate dip with a smooth finish.",
+    name: "White Chocolate Dipped Bites",
+    shortName: "White Chocolate",
+    description: "Creamy white chocolate brings a smooth, mellow finish to a bite made for everyday moments of joy.",
+    image: "/white-chocolate.webp",
+    tone: "white",
+    notes: ["20 nutritious bites", "Smooth white chocolate dip", "Creamy, mellow sweetness"],
     price: 399,
-    color: "#e9d7ad",
-    accent: "#b9945b",
-    number: "02",
-    notes: ["Creamy and mellow", "Silky sweet finish", "20 bites per pack"],
   },
   {
     id: "milk",
-    name: "Milk Chocolate",
-    flavor: "The classic one",
-    description: "A familiar, velvety milk chocolate dip made for everyday moments.",
+    name: "Milk Chocolate Dipped Bites",
+    shortName: "Milk Chocolate",
+    description: "A familiar chocolatey finish wraps a wholesome bite in a comforting, crowd-pleasing treat.",
+    image: "/milk-chocolate.webp",
+    tone: "milk",
+    notes: ["20 nutritious bites", "Classic milk chocolate dip", "A comforting chocolate finish"],
     price: 399,
-    color: "#80502e",
-    accent: "#d3a16b",
-    number: "03",
-    notes: ["Smooth cocoa taste", "A classic chocolate dip", "20 bites per pack"],
   },
 ];
 
-type CartLine = { id: string; quantity: number };
+const ingredients = [
+  { name: "Dates", image: "/reference/dates.webp" },
+  { name: "Almonds", image: "/reference/almonds.webp" },
+  { name: "Pistachios", image: "/reference/pistachios.webp" },
+  { name: "Black Raisins", image: "/reference/black-raisins.webp" },
+  { name: "Golden Raisins", image: "/reference/golden-raisins.webp" },
+  { name: "Anjeer", image: "/reference/anjeer.webp" },
+  { name: "Cashews", image: "/reference/cashews.webp" },
+  { name: "Ghee", image: "/reference/ghee.webp" },
+];
 
-function money(amount: number) {
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(amount);
+function Icon({ name, size = 20 }: { name: "bag" | "close" | "plus" | "minus" | "arrow" | "leaf" | "spark" | "menu"; size?: number }) {
+  const common = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true as const };
+  if (name === "bag") return <svg {...common}><path d="M5 8h14l1 12H4L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>;
+  if (name === "close") return <svg {...common}><path d="m6 6 12 12M18 6 6 18"/></svg>;
+  if (name === "plus") return <svg {...common}><path d="M12 5v14M5 12h14"/></svg>;
+  if (name === "minus") return <svg {...common}><path d="M5 12h14"/></svg>;
+  if (name === "arrow") return <svg {...common}><path d="M4 12h15M13 5l7 7-7 7"/></svg>;
+  if (name === "leaf") return <svg {...common}><path d="M20 4C10 4 4 8 4 15a5 5 0 0 0 5 5c7 0 11-6 11-16Z"/><path d="M4 20c3-5 7-8 12-11"/></svg>;
+  if (name === "spark") return <svg {...common}><path d="m12 2 1.8 7.2L21 12l-7.2 1.8L12 21l-1.8-7.2L3 12l7.2-2.8L12 2Z"/></svg>;
+  return <svg {...common}><path d="M4 7h16M4 12h16M4 17h16"/></svg>;
 }
 
-function ProductArtwork({ product, large = false }: { product: Product; large?: boolean }) {
-  return (
-    <div className={`product-art ${large ? "product-art-large" : ""}`} style={{ "--choco": product.color, "--accent": product.accent } as React.CSSProperties}>
-      <div className="art-glow" />
-      <div className="art-leaf leaf-one">✦</div>
-      <div className="art-leaf leaf-two">✧</div>
-      <div className="bite bite-a"><span /></div>
-      <div className="bite bite-b"><span /></div>
-      <div className="bite bite-c"><span /></div>
-      <div className="pack">
-        <div className="pack-topline"><span>NUTRIVÉ</span><span>EST. IN NATURE</span></div>
-        <div className="pack-brand">Nutri<span>vé.</span></div>
-        <div className="pack-rule" />
-        <div className="pack-title">NUTRITIOUS<br />BITES</div>
-        <div className="pack-dip">DIPPED IN {product.name.toUpperCase()}</div>
-        <div className="pack-bottom">
-          <span>20 BITES</span>
-          <span className="pack-seal">N</span>
-        </div>
-      </div>
-      <div className="art-caption">NATURE’S FINEST. NOTHING ELSE.</div>
-    </div>
-  );
-}
-
-export default function Home() {
+export default function HomePage() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
-  const [notice, setNotice] = useState("");
-  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [checkoutNote, setCheckoutNote] = useState(false);
 
-  const cartCount = cart.reduce((sum, line) => sum + line.quantity, 0);
-  const subtotal = useMemo(() => cart.reduce((sum, line) => {
-    const product = products.find((item) => item.id === line.id);
-    return sum + (product?.price ?? 0) * line.quantity;
-  }, 0), [cart]);
+  const cartCount = cart.reduce((sum, line) => sum + line.qty, 0);
+  const cartItems = useMemo(() => cart.map((line) => ({ ...line, product: products.find((p) => p.id === line.id)! })), [cart]);
+  const subtotal = cartItems.reduce((sum, line) => sum + line.product.price * line.qty, 0);
 
   function addToCart(id: string) {
     setCart((current) => {
-      const existing = current.find((line) => line.id === id);
-      return existing
-        ? current.map((line) => line.id === id ? { ...line, quantity: line.quantity + 1 } : line)
-        : [...current, { id, quantity: 1 }];
+      const found = current.find((line) => line.id === id);
+      return found ? current.map((line) => line.id === id ? { ...line, qty: line.qty + 1 } : line) : [...current, { id, qty: 1 }];
     });
-    const product = products.find((item) => item.id === id);
-    setNotice(`${product?.name ?? "Product"} added to your bag`);
-    window.setTimeout(() => setNotice(""), 2400);
+    setActiveProduct(null);
+    setCheckoutNote(false);
+    setCartOpen(true);
   }
 
-  function changeQuantity(id: string, delta: number) {
-    setCart((current) => current
-      .map((line) => line.id === id ? { ...line, quantity: line.quantity + delta } : line)
-      .filter((line) => line.quantity > 0));
-  }
-
-  function openCheckout() {
-    setCartOpen(false);
-    setCheckoutOpen(true);
-    setOrderPlaced(false);
+  function changeQty(id: string, delta: number) {
+    setCart((current) => current.map((line) => line.id === id ? { ...line, qty: line.qty + delta } : line).filter((line) => line.qty > 0));
   }
 
   return (
     <main>
       <header className="site-header">
-        <a className="wordmark" href="#home" aria-label="NutriVé home">Nutri<span>vé.</span></a>
-        <nav className="main-nav">
-          <a className="nav-active" href="#home">Home</a>
-          <a href="#ingredients">Our ingredients</a>
-          <a href="#philosophy">Our philosophy</a>
+        <a className="wordmark" href="#home" aria-label="NutriVé home">NutriVé<span>®</span></a>
+        <nav className={`main-nav ${mobileMenuOpen ? "is-open" : ""}`} aria-label="Main navigation">
+          <a className="nav-active" href="#home" onClick={() => setMobileMenuOpen(false)}>Home</a>
+          <a href="#story" onClick={() => setMobileMenuOpen(false)}>Our Story</a>
+          <a href="#ingredients" onClick={() => setMobileMenuOpen(false)}>Ingredients</a>
+          <a href="#shop" onClick={() => setMobileMenuOpen(false)}>Shop</a>
         </nav>
-        <button className="header-shop" onClick={() => document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" })}>
-          Explore the goodness <ArrowUpRight size={17} />
-        </button>
-        <button className="bag-button" onClick={() => setCartOpen(true)} aria-label={`Open shopping bag, ${cartCount} items`}>
-          <ShoppingBag size={20} /><span>Bag</span><b>{cartCount}</b>
-        </button>
+        <div className="header-actions">
+          <a className="header-search" href="#shop" aria-label="Browse products"><span className="search-mark" /></a>
+          <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Open shopping bag, ${cartCount} items`}>
+            <Icon name="bag" size={19} /><span className="cart-count">{cartCount}</span>
+          </button>
+          <button className="menu-trigger" onClick={() => setMobileMenuOpen((open) => !open)} aria-label="Toggle menu"><Icon name={mobileMenuOpen ? "close" : "menu"} size={21} /></button>
+        </div>
       </header>
 
       <section className="hero" id="home">
-        <div className="hero-vignette" />
-        <div className="hero-sparks"><i /><i /><i /><i /><i /><i /><i /></div>
-        <div className="hero-copy">
-          <div className="eyebrow"><span /> NATURE’S FINEST. NOTHING ELSE. <span /></div>
-          <h1>Nutri<span>vé</span></h1>
+        <div className="hero-image" />
+        <div className="hero-shade" />
+        <div className="hero-content">
+          <p className="eyebrow"><span /> NATURE, MADE DELICIOUS <span /></p>
+          <h1>Small Bite.<br /><em>Big Energy.</em></h1>
+          <div className="hero-rule"><i /><span>✦</span><i /></div>
           <p className="hero-tagline">NUTRITION THAT TASTES LIKE A TREAT</p>
-          <div className="ornament"><span />◆<span /></div>
-          <p className="hero-description">Crafted with nature&apos;s finest ingredients,<br />for your everyday energy.</p>
-          <a className="scroll-cue" href="#shop" aria-label="Scroll to shop"><ArrowDown size={20} /></a>
-          <p className="scroll-label">SCROLL TO DISCOVER</p>
+          <p className="hero-copy">Crafted with nature’s finest ingredients,<br className="desktop-break" /> for your everyday energy.</p>
+          <a className="gold-button" href="#shop">Discover the bites <Icon name="arrow" size={17} /></a>
         </div>
-        <div className="hero-bottom">
-          <div><span>01</span><i /> Welcome</div>
-          <p>A LITTLE CLOSER TO NATURE</p>
-          <a href="#shop">Meet our bites <ArrowDown size={15} /></a>
-        </div>
+        <a className="scroll-cue" href="#story" aria-label="Scroll to our story"><span>↓</span></a>
+        <div className="hero-footnote"><span>01 / 03</span><i /><span>THE EVERYDAY INDULGENCE</span></div>
       </section>
 
-      <section className="intro-strip" id="ingredients">
-        <div className="intro-icon"><Leaf size={18} /></div>
-        <p>Thoughtfully crafted bites. A little moment of goodness in every pack.</p>
-        <span>MADE FOR YOUR EVERYDAY</span>
+      <div className="intro-strip"><Icon name="leaf" size={20} /><p>Crafted with nature’s finest ingredients, for your everyday energy.</p><span>PURE INGREDIENTS · THOUGHTFUL INDULGENCE</span></div>
+
+      <section className="story-section" id="story">
+        <div className="story-copy">
+          <p className="eyebrow left"><span /> THE NUTRIVÉ PHILOSOPHY</p>
+          <h2>Goodness you can<br /><em>feel good about.</em></h2>
+          <p>We believe everyday nourishment should feel like a little luxury. NutriVé brings together the richness of nature and the joy of chocolate in a bite-sized treat made for the moments that matter.</p>
+          <a className="text-link" href="#ingredients">Explore our ingredients <Icon name="arrow" size={16} /></a>
+        </div>
+        <div className="story-image-wrap"><img src="/reference/bite-count.webp" alt="NutriVé nutritious bites with nature-inspired ingredients" /><div className="image-caption"><span>MADE WITH CARE</span><span>ROOTED IN NATURE</span></div></div>
       </section>
 
       <section className="shop-section" id="shop">
         <div className="section-heading">
-          <div>
-            <p className="eyebrow small-eyebrow">THE NUTRIVÉ COLLECTION</p>
-            <h2>A little bite.<br /><em>A lot of goodness.</em></h2>
-          </div>
-          <p className="section-note">Three delicious chocolate dips.<br />Twenty little moments in every pack.</p>
+          <div><p className="eyebrow left"><span /> FIND YOUR FAVOURITE</p><h2>A little chocolate.<br /><em>A lot of goodness.</em></h2></div>
+          <p className="section-note">Twenty nutritious bites in every packet.<br />Three delicious ways to treat yourself.</p>
         </div>
         <div className="product-grid">
-          {products.map((product) => (
-            <article className="product-card" key={product.id}>
-              <button className="product-visual-button" onClick={() => setActiveProduct(product)} aria-label={`View ${product.name} Nutritious Bites`}>
-                <ProductArtwork product={product} />
-                <span className="visual-open"><ArrowUpRight size={17} /></span>
-                <span className="product-number">{product.number} / 03</span>
+          {products.map((product, index) => (
+            <article className={`product-card ${product.tone}`} key={product.id}>
+              <button className="product-image-button" onClick={() => setActiveProduct(product)} aria-label={`View ${product.name}`}>
+                <span className="product-number">0{index + 1}</span>
+                <span className="product-image-glow" />
+                <img className="product-image" src={product.image} alt={`${product.shortName} NutriVé bites packet`} />
+                <span className="view-product">Quick view <Icon name="arrow" size={14} /></span>
               </button>
-              <div className="product-card-info">
-                <div className="product-meta"><span>{product.flavor}</span><span>20 BITES</span></div>
-                <button className="product-name" onClick={() => setActiveProduct(product)}>{product.name} Dip</button>
+              <div className="product-info">
+                <div className="product-kicker">NUTRIVÉ BITES · 20 PIECES</div>
+                <h3>{product.shortName}<br /><span>Dipped Bites</span></h3>
                 <p>{product.description}</p>
-                <div className="product-buy-row">
-                  <strong>{money(product.price)}</strong>
-                  <button className="add-button" onClick={() => addToCart(product.id)}><Plus size={15} /> Add to bag</button>
-                </div>
+                <div className="product-bottom"><strong>₹{product.price}</strong><button className="add-button" onClick={() => addToCart(product.id)}>Add to bag <Icon name="arrow" size={15} /></button></div>
               </div>
             </article>
           ))}
         </div>
-        <p className="price-note">Introductory placeholder pricing · Update prices before launch</p>
+        <p className="price-note">Prices shown are placeholders. Checkout is a demo and does not process real payments.</p>
       </section>
 
-      <section className="philosophy" id="philosophy">
-        <div className="philosophy-mark">N.</div>
-        <p className="eyebrow small-eyebrow">OUR PHILOSOPHY</p>
-        <h2>Goodness should<br /><em>feel this good.</em></h2>
-        <p>Small bites, considered ingredients, and chocolate-dipped moments made to bring a little joy to your everyday.</p>
-        <a href="#shop">Find your favourite <ArrowRight size={16} /></a>
+      <section className="ingredient-section" id="ingredients">
+        <div className="ingredient-heading"><p className="eyebrow"><span /> FROM NATURE’S PANTRY <span /></p><h2>Every ingredient<br /><em>has a story.</em></h2><p>Inspired by the beautiful simplicity of nature’s pantry.</p></div>
+        <div className="ingredient-grid">
+          {ingredients.map((ingredient, index) => (
+            <figure className={`ingredient-card ingredient-${index + 1}`} key={ingredient.name}>
+              <img src={ingredient.image} alt={`${ingredient.name} ingredient story`} loading="lazy" />
+              <figcaption><span>0{index + 1}</span>{ingredient.name}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      <section className="closing-banner">
+        <img src="/reference/bite-count.webp" alt="NutriVé bites and packet surrounded by natural ingredients" loading="lazy" />
+        <div className="closing-overlay" />
+        <div className="closing-copy"><p className="eyebrow left"><span /> A BETTER KIND OF TREAT</p><h2>Make every<br /><em>bite count.</em></h2><a className="gold-button" href="#shop">Shop the collection <Icon name="arrow" size={17} /></a></div>
       </section>
 
       <footer className="site-footer">
-        <a className="wordmark" href="#home">Nutri<span>vé.</span></a>
-        <p>Nature’s finest. Nothing else.</p>
-        <span>© 2026 NUTRIVÉ · MADE FOR EVERYDAY GOODNESS</span>
+        <div><a className="wordmark footer-wordmark" href="#home">NutriVé<span>®</span></a><p>Nutrition that tastes like a treat.</p></div>
+        <div className="footer-links"><a href="#story">Our Story</a><a href="#ingredients">Ingredients</a><a href="#shop">Shop</a></div>
+        <div className="footer-motto">BETTER INGREDIENTS <i>•</i> BETTER NUTRITION <i>•</i> A HEALTHIER YOU</div>
+        <small>© {new Date().getFullYear()} NutriVé. All rights reserved.</small>
       </footer>
 
-      {notice && <div className="toast"><Check size={16} /> {notice} <button onClick={() => setCartOpen(true)}>View bag</button></div>}
+      {activeProduct && <div className="modal-backdrop" role="presentation" onClick={() => setActiveProduct(null)}><section className={`product-modal ${activeProduct.tone}`} role="dialog" aria-modal="true" aria-label={activeProduct.name} onClick={(event) => event.stopPropagation()}>
+        <button className="modal-close" onClick={() => setActiveProduct(null)} aria-label="Close product details"><Icon name="close" size={20} /></button>
+        <div className="modal-visual"><img src={activeProduct.image} alt={`${activeProduct.shortName} bites packet`} /></div>
+        <div className="modal-copy"><p className="eyebrow left"><span /> THE NUTRIVÉ COLLECTION</p><h2>{activeProduct.shortName}<br /><em>Dipped Bites</em></h2><p>{activeProduct.description}</p><ul>{activeProduct.notes.map((note) => <li key={note}><Icon name="spark" size={14} />{note}</li>)}</ul><div className="modal-price">₹{activeProduct.price}</div><button className="gold-button full-button" onClick={() => addToCart(activeProduct.id)}>Add to bag <Icon name="arrow" size={17} /></button></div>
+      </section></div>}
 
-      {activeProduct && (
-        <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setActiveProduct(null); }}>
-          <div className="product-modal">
-            <button className="icon-close" onClick={() => setActiveProduct(null)} aria-label="Close product details"><X /></button>
-            <ProductArtwork product={activeProduct} large />
-            <div className="modal-copy">
-              <p className="eyebrow small-eyebrow">{activeProduct.flavor}</p>
-              <h2>{activeProduct.name}<br /><em>Nutritious Bites</em></h2>
-              <p>{activeProduct.description}</p>
-              <ul>{activeProduct.notes.map((note) => <li key={note}><Leaf size={14} /> {note}</li>)}</ul>
-              <div className="modal-price">{money(activeProduct.price)} <span>/ packet</span></div>
-              <button className="gold-button" onClick={() => { addToCart(activeProduct.id); setActiveProduct(null); }}>Add to bag <ArrowRight size={17} /></button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {cartOpen && (
-        <div className="drawer-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCartOpen(false); }}>
-          <aside className="cart-drawer">
-            <div className="drawer-header"><div><p className="eyebrow small-eyebrow">YOUR SELECTION</p><h2>Your bag <span>({cartCount})</span></h2></div><button className="icon-close" onClick={() => setCartOpen(false)} aria-label="Close bag"><X /></button></div>
-            {cart.length === 0 ? (
-              <div className="empty-cart"><ShoppingBag size={32} /><h3>Your bag is waiting.</h3><p>Find a little goodness to make your day.</p><button className="gold-button" onClick={() => { setCartOpen(false); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}>Explore the collection <ArrowRight size={16} /></button></div>
-            ) : (
-              <>
-                <div className="cart-lines">
-                  {cart.map((line) => {
-                    const product = products.find((item) => item.id === line.id)!;
-                    return <div className="cart-line" key={line.id}>
-                      <div className="cart-thumb"><ProductArtwork product={product} /></div>
-                      <div className="cart-line-copy"><h3>{product.name} Dip</h3><p>20 nutritious bites · 1 packet</p><strong>{money(product.price * line.quantity)}</strong><div className="quantity-control"><button onClick={() => changeQuantity(line.id, -1)} aria-label="Decrease quantity"><Minus size={13} /></button><span>{line.quantity}</span><button onClick={() => changeQuantity(line.id, 1)} aria-label="Increase quantity"><Plus size={13} /></button></div></div>
-                      <button className="remove-line" onClick={() => setCart((current) => current.filter((item) => item.id !== line.id))}>Remove</button>
-                    </div>;
-                  })}
-                </div>
-                <div className="cart-summary"><div><span>Subtotal</span><strong>{money(subtotal)}</strong></div><p>Shipping and taxes are calculated at checkout.</p><button className="gold-button full-button" onClick={openCheckout}>Continue to checkout <ArrowRight size={17} /></button><button className="text-button" onClick={() => setCartOpen(false)}>Continue shopping</button></div>
-              </>
-            )}
-          </aside>
-        </div>
-      )}
-
-      {checkoutOpen && (
-        <div className="checkout-screen">
-          <header className="checkout-header"><button className="back-link" onClick={() => { setCheckoutOpen(false); setCartOpen(true); }}>← Back to bag</button><a className="wordmark" href="#home">Nutri<span>vé.</span></a><span className="secure-note">SECURE CHECKOUT · DEMO</span></header>
-          <div className="checkout-layout">
-            <div className="checkout-form-column">
-              {orderPlaced ? (
-                <div className="order-success"><div className="success-icon"><Check size={28} /></div><p className="eyebrow small-eyebrow">THANK YOU</p><h1>Your goodness<br /><em>is on its way.</em></h1><p>This is a demo checkout. No payment has been taken and no order has been sent.</p><button className="gold-button" onClick={() => { setCheckoutOpen(false); setCart([]); setOrderPlaced(false); }}>Back to NutriVé <ArrowRight size={16} /></button></div>
-              ) : (
-                <form className="checkout-form" onSubmit={(event) => { event.preventDefault(); setOrderPlaced(true); }}>
-                  <p className="eyebrow small-eyebrow">JUST A FEW DETAILS</p><h1>Checkout</h1>
-                  <label>Email address<input type="email" placeholder="you@example.com" required /></label>
-                  <div className="form-section-title"><h2>Delivery details</h2><span>Where should we send your goodness?</span></div>
-                  <div className="form-two"><label>First name<input placeholder="First name" required /></label><label>Last name<input placeholder="Last name" required /></label></div>
-                  <label>Address<input placeholder="House number and street" required /></label>
-                  <label>Apartment, suite, etc. <span className="optional">(optional)</span><input placeholder="Apartment, floor, landmark" /></label>
-                  <div className="form-three"><label>City<input placeholder="City" required /></label><label>State<input placeholder="State" required /></label><label>PIN code<input inputMode="numeric" pattern="[0-9]{6}" placeholder="6-digit PIN" required /></label></div>
-                  <label>Phone number<input type="tel" inputMode="tel" placeholder="+91" required /></label>
-                  <div className="form-section-title payment-title"><h2>Payment</h2><span>Choose how you&apos;d like to pay.</span></div>
-                  <div className="payment-demo"><div className="payment-radio"><span className="radio-dot" /><div><strong>Online payment</strong><p>UPI, cards and net banking</p></div><span className="payment-label">COMING SOON</span></div><div className="payment-radio"><span className="radio-ring" /><div><strong>Cash on delivery</strong><p>Pay when your order arrives</p></div></div><p className="demo-warning">Demo only: payment processing and order submission are not connected yet.</p></div>
-                  <button className="gold-button full-button place-order" type="submit">Place demo order <ArrowRight size={17} /></button>
-                  <p className="terms-note">By continuing, you agree to our store terms and privacy policy.</p>
-                </form>
-              )}
-            </div>
-            {!orderPlaced && <aside className="checkout-summary"><p className="eyebrow small-eyebrow">YOUR GOODNESS</p><h2>Order summary</h2><div className="checkout-items">{cart.map((line) => { const product = products.find((item) => item.id === line.id)!; return <div className="checkout-item" key={line.id}><div className="summary-thumb"><ProductArtwork product={product} /><b>{line.quantity}</b></div><div><strong>{product.name} Dip</strong><p>20 nutritious bites</p></div><span>{money(product.price * line.quantity)}</span></div>; })}</div><div className="summary-total"><div><span>Subtotal</span><span>{money(subtotal)}</span></div><div><span>Shipping</span><span className="shipping-note">Calculated later</span></div><div className="total-row"><strong>Total</strong><strong>{money(subtotal)}</strong></div><p>Shipping will be confirmed before a real order is placed.</p></div></aside>}
-          </div>
-        </div>
-      )}
+      {cartOpen && <div className="drawer-backdrop" role="presentation" onClick={() => setCartOpen(false)}><aside className="cart-drawer" role="dialog" aria-modal="true" aria-label="Shopping bag" onClick={(event) => event.stopPropagation()}>
+        <div className="drawer-heading"><div><p className="eyebrow left"><span /> YOUR SELECTION</p><h2>Your bag <span>({cartCount})</span></h2></div><button className="modal-close static-close" onClick={() => setCartOpen(false)} aria-label="Close bag"><Icon name="close" size={20} /></button></div>
+        {cartItems.length === 0 ? <div className="empty-cart"><div className="empty-bag"><Icon name="bag" size={30} /></div><h3>Your bag is waiting.</h3><p>Choose a chocolate-dipped bite to get started.</p><button className="gold-button" onClick={() => { setCartOpen(false); document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" }); }}>Explore the collection <Icon name="arrow" size={16} /></button></div> : <>
+          <div className="cart-lines">{cartItems.map(({ product, qty }) => <div className="cart-line" key={product.id}><img src={product.image} alt="" /><div className="cart-line-copy"><h3>{product.shortName}</h3><p>20 nutritious bites · ₹{product.price}</p><div className="quantity-control"><button onClick={() => changeQty(product.id, -1)} aria-label={`Remove one ${product.shortName}`}><Icon name="minus" size={13} /></button><span>{qty}</span><button onClick={() => changeQty(product.id, 1)} aria-label={`Add one ${product.shortName}`}><Icon name="plus" size={13} /></button></div></div><strong>₹{product.price * qty}</strong></div>)}</div>
+          <div className="cart-total"><span>Subtotal</span><strong>₹{subtotal}</strong></div><p className="shipping-copy">Shipping and taxes are calculated at checkout.</p>
+          {checkoutNote && <div className="demo-notice">Demo checkout only — no payment or order has been processed.</div>}
+          <button className="gold-button full-button" onClick={() => setCheckoutNote(true)}>Continue to checkout <Icon name="arrow" size={17} /></button><button className="continue-shopping" onClick={() => setCartOpen(false)}>Continue shopping</button>
+        </>}
+      </aside></div>}
     </main>
   );
 }
