@@ -59,3 +59,92 @@ body {
     min-width: 0;
   }
 }
+
+
+/* Mobile layout: keep the page inside the actual device viewport. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+}
+
+body {
+  overflow-x: clip;
+}
+
+main {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+.header-search-label {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  html,
+  body,
+  main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .site-header {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .header-actions {
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .header-search {
+    width: auto;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    font-size: 8px;
+    letter-spacing: .7px;
+    text-transform: uppercase;
+  }
+
+  .header-search-label {
+    display: inline;
+  }
+
+  .hero {
+    width: 100%;
+    min-height: 100svh;
+    min-height: 100dvh;
+    height: 100svh;
+    height: 100dvh;
+  }
+
+  .hero-content,
+  .story-section,
+  .shop-section,
+  .ingredient-section,
+  .closing-banner,
+  .site-footer {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
