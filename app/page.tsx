@@ -107,7 +107,7 @@ export default function HomePage() {
           <a href="#shop" onClick={() => setMobileMenuOpen(false)}>Shop</a>
         </nav>
         <div className="header-actions">
-          <a className="header-search" href="#shop" aria-label="Browse products"><span className="search-mark" /></a>
+          <a className="header-search" href="#shop" aria-label="Browse products"><span className="search-mark" /><span className="header-search-label">Our Products</span></a>
           <button className="cart-trigger" onClick={() => setCartOpen(true)} aria-label={`Open shopping bag, ${cartCount} items`}>
             <Icon name="bag" size={19} /><span className="cart-count">{cartCount}</span>
           </button>
